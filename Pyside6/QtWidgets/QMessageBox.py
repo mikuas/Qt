@@ -1,0 +1,37 @@
+# coding:utf-8
+import random
+import re
+import sys
+
+from PySide6.QtGui import QFont, Qt, QPainter, QColor, QPalette, QTextCharFormat, QAction, QIcon, QDesktopServices
+from PySide6.QtCore import QTime, QTimer, QPoint, QDateTime, QDate, QCalendar, QSize, QUrl, QRect
+from PySide6.QtWidgets import QLabel, QApplication, QWidget, QLayout, QCalendarWidget, QLCDNumber, QDateTimeEdit, \
+    QFormLayout, QHBoxLayout, QVBoxLayout, QBoxLayout, QGridLayout, QSplitter, QGroupBox, QFrame, QScrollArea, \
+    QScrollBar, QTabWidget, QTabBar, QPushButton, QStackedWidget, QMenu, QMenuBar, QWidgetAction, QLineEdit, \
+    QToolBar, QToolButton, QStatusBar, QMainWindow, QDockWidget, QDialog, QMdiArea, QMdiSubWindow, QFontDialog, \
+    QColorDialog, QFileDialog, QInputDialog, QMessageBox
+
+from Interface import WidgetInterface
+
+
+class QMessageBoxInterface(WidgetInterface):
+    def __init__(self):
+        super().__init__()
+        self.infos.deleteLater()
+
+        self.dialog = QMessageBox(self)
+        self.box.addWidget(self.button)
+        self.button.clicked.connect(self.dialog.show)
+
+        self.dialog.setText('text')
+
+        # 设置按Esc对应的按钮
+        # self.dialog.setEscapeButton()
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = QMessageBoxInterface()
+    window.resize(800, 520)
+    window.show()
+    sys.exit(app.exec())
