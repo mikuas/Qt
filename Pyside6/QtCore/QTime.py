@@ -111,11 +111,13 @@ class QTimeInterface(WidgetInterface):
         """
         return self.time.currentTime().toString("A:h:m:s:zzz")
 
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        self.dragPos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+
     def mouseMoveEvent(self, event):
-        pos = event.globalPosition().toPoint()
-        x = pos.x() - self.width() / 2
-        y = pos.y() - self.height() / 2
-        self.move(x, y)
+        print(event.button() == Qt.MouseButton.LeftButton)
+        self.move(event.globalPosition().toPoint() - self.dragPos)
 
     def enterEvent(self, event):
         super().enterEvent(event)

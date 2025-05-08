@@ -12,7 +12,7 @@ from PySide6.QtGui import QIcon, QCursor, QPainter, QColor, QPainterPath
 from PySide6.QtWidgets import QApplication, QLabel, QWidget, QLineEdit
 
 from FluentWidgets import HBoxLayout, SideNavWidget, TitleLabel, FluentIcon, NavigationItemPosition, Icon, PushButton, \
-    TransparentToolButton, SearchLineEdit, PasswordLineEdit, TextEdit, isDarkTheme, SplitFluentWindow
+    TransparentToolButton, SearchLineEdit, PasswordLineEdit, TextEdit, isDarkTheme, SplitFluentWindow, FluentWindow
 from qfluentwidgets import LineEdit
 
 from qframelesswindow import TitleBar, AcrylicWindow, TitleBarButton
@@ -424,14 +424,9 @@ class ExpandNav(QWidget):
         self.stackedWidget.setCurrentWidget(w)
 
 
-class Window(FramelessWindow):
+class Window(FluentWindow):
     def __init__(self):
         super().__init__()
-        from FluentWidgets import FluentWindow
-        # self.setAttribute(Qt.WA_TranslucentBackground)
-        self.windowEffect.addWindowAnimation(self.winId())
-        self.windowEffect.setMicaEffect(self.winId(), isAlt=True)
-
         self.setMinimumSize(800, 520)
 
         self.box = HBoxLayout(self)
@@ -443,13 +438,16 @@ class Window(FramelessWindow):
         self.setContentsMargins(0, 48, 0, 0)
         self.nav = ExpandNav(self)
         self.box.addWidget(self.nav)
+        self.box.setContentsMargins(11, 11, 0, 0)
 
         self.nav.setMinimumWidth(400)
+        self.nav.setContentsMargins(0,0,0,0)
 
         class cw(QWidget):
             def __init__(self):
                 super().__init__()
                 l = HBoxLayout(self)
+                l.setContentsMargins(0,0,0,0)
                 l.addWidget(TitleLabel("INTERFACE"), alignment=Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
 
             def _updateAcrylicColor(self):
@@ -463,9 +461,26 @@ class Window(FramelessWindow):
                 self.acrylicBrush.tintColor = tintColor
                 self.acrylicBrush.luminosityColor = luminosityColor
 
-        self.nav.addSubInterface("INTERFACE1", "INTERFACE", cw(), FluentIcon.HOME)
-        self.nav.addSubInterface("INTERFACE2", "INTERFACE", TitleLabel("INTERFACE"), FluentIcon.HOME)
-        self.nav.addSubInterface("INTERFACE3", "INTERFACE", TitleLabel("CIALLOWORLD"), FluentIcon.HOME)
+        self.cw = cw()
+        self.cw.setContentsMargins(0,0,0,0)
+
+        # self.nav.addSubInterface("INTERFACE1", "INTERFACE", self.cw, FluentIcon.HOME)
+        # self.nav.addSubInterface("INTERFACE2", "INTERFACE", TitleLabel("INTERFACE"), FluentIcon.HOME)
+        # self.nav.addSubInterface("INTERFACE3", "INTERFACE", TitleLabel("CIALLOWORLD"), FluentIcon.HOME)
+
+        self.setMicaEffectEnabled(True)
+
+    def setMicaEffectEnabled(self, isEnabled: bool):
+        """ set whether the mica effect is enabled, only available on Win11 """
+        if sys.platform != 'win32' or sys.getwindowsversion().build < 22000:
+            return
+
+        self._isMicaEnabled = isEnabled
+
+        if isEnabled:
+            self.windowEffect.setMicaEffect(self.winId(), isDarkTheme(), True)
+        else:
+            self.windowEffect.removeBackgroundEffect(self.winId())
 
 
 if __name__ == '__main__':
