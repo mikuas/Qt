@@ -3,12 +3,12 @@ import random
 import sys
 
 from PySide6.QtGui import QFont, Qt, QPainter, QColor, QPalette
-from PySide6.QtWidgets import QLabel, QApplication, QWidget, QLayout
-from PySide6.QtCore import QTime, QTimer, QPoint
+from PySide6.QtWidgets import QLabel, QApplication
+from PySide6.QtCore import QTime, QTimer
 
 from Interface import WidgetInterface
 
-from FluentWidgets import RoundMenu, Action, TransparentToolButton, FluentIcon, ToggleToolButton, HBoxLayout, setToolTipInfo
+from FluentWidgets import Action, TransparentToolButton, FluentIcon, HBoxLayout, setToolTipInfo
 from FluentWidgets.components.material import AcrylicMenu
 
 
@@ -24,18 +24,16 @@ class QTimeInterface(WidgetInterface):
         self.button.deleteLater()
         self.infos.deleteLater()
 
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
         self.time = QTime()
         # 设置时间
         self.time.setHMS(1, 1, 1, 1)
 
-        print(self.time.currentTime().toString(Qt.DateFormat.ISODateWithMs))
-
         self.title = QLabel("QTime", self)
         self.title.setFont(QFont("微软雅黑", 24))
-        self.title.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.title.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
 
         color = QColor('white')
         self.closeButton = TransparentToolButton(FluentIcon.CLOSE.colored(color, color), self)
@@ -46,8 +44,8 @@ class QTimeInterface(WidgetInterface):
         self.topButton.setWindowOpacity(0)
         self.topButton.setVisible(False)
         self.topButton.clicked.connect(lambda: {
-            self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-            if self._isTop else self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint),
+            self.setWindowFlags(Qt.FramelessWindowHint)
+            if self._isTop else self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint),
             self.updateTop(not self._isTop),
             self.show()
         })
@@ -56,12 +54,12 @@ class QTimeInterface(WidgetInterface):
         setToolTipInfo(self.topButton, '取消置顶', 1000)
 
         self.hLayout = HBoxLayout()
-        self.hLayout.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.hLayout.setAlignment(Qt.AlignRight)
         self.hLayout.addWidget(self.topButton)
         self.hLayout.addWidget(self.closeButton)
 
         self.box.addLayout(self.hLayout)
-        self.box.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
+        self.box.addWidget(self.title, alignment=Qt.AlignHCenter | Qt.AlignBottom)
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(lambda: {
@@ -116,7 +114,6 @@ class QTimeInterface(WidgetInterface):
         self.dragPos = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
 
     def mouseMoveEvent(self, event):
-        print(event.button() == Qt.MouseButton.LeftButton)
         self.move(event.globalPosition().toPoint() - self.dragPos)
 
     def enterEvent(self, event):

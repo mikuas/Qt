@@ -6,18 +6,21 @@ import sys
 from PySide6.QtGui import QFont, Qt, QPainter, QColor, QPalette, QTextCharFormat, QAction, QIcon, QDesktopServices, \
     QKeySequence, QDrag, QPixmap, QContextMenuEvent, QChildWindowEvent, QClipboard, QShowEvent, QCloseEvent, \
     QResizeEvent, \
-    QMoveEvent, QPaintEvent, QEnterEvent, QFocusEvent, QHideEvent, QWheelEvent, QBrush, QPen
+    QMoveEvent, QPaintEvent, QEnterEvent, QFocusEvent, QHideEvent, QWheelEvent, QBrush, QPen, QStandardItemModel
 from PySide6.QtCore import QTime, QTimer, QPoint, QDateTime, QDate, QCalendar, QSize, QUrl, QRect, QEvent, QEventLoop, \
     QChildEvent, QTimerEvent, QWinEventNotifier, QAbstractNativeEventFilter, QAbstractEventDispatcher, \
-    QDynamicPropertyChangeEvent, QMimeData, QByteArray, QCoreApplication
+    QDynamicPropertyChangeEvent, QMimeData, QByteArray, QCoreApplication, QLocale
 from PySide6.QtWidgets import QLabel, QApplication, QWidget, QLayout, QCalendarWidget, QLCDNumber, QDateTimeEdit, \
     QFormLayout, QHBoxLayout, QVBoxLayout, QBoxLayout, QGridLayout, QSplitter, QGroupBox, QFrame, QScrollArea, \
     QScrollBar, QTabWidget, QTabBar, QPushButton, QStackedWidget, QMenu, QMenuBar, QWidgetAction, QLineEdit, \
     QToolBar, QToolButton, QStatusBar, QMainWindow, QDockWidget, QDialog, QMdiArea, QMdiSubWindow, QFontDialog, \
     QColorDialog, QFileDialog, QInputDialog, QMessageBox, QErrorMessage, QProgressDialog, QWizard, QWizardPage, QStyle, \
     QListWidget, QListWidgetItem, QStyledItemDelegate, QStyleOptionViewItem, QTableView, QTableWidget, QTableWidgetItem, \
-    QTapGesture, QTapAndHoldGesture, QTableWidgetSelectionRange, QStyleOptionTabWidgetFrame, QStyleOptionTab, QStyleOptionTabBarBase
+    QTapGesture, QTapAndHoldGesture, QTableWidgetSelectionRange, QStyleOptionTabWidgetFrame, QStyleOptionTab, \
+    QStyleOptionTabBarBase, QAbstractItemView
 from Interface import WidgetInterface
+
+count = 0
 
 
 class CustomDelegate(QStyledItemDelegate):
@@ -25,7 +28,10 @@ class CustomDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         try:
             from FluentWidgets import LineEdit
-            return LineEdit(parent)
+            editor = LineEdit(parent)
+            editor.setClearButtonEnabled(True)
+            editor.setFixedHeight(option.rect.height())
+            return editor
         except ImportError:
             return super().createEditor(parent, option, index)
 
@@ -37,6 +43,18 @@ class CustomDelegate(QStyledItemDelegate):
 
     def paint(self, painter, option, index):
         painter.save()
+        painter.setClipping(True)
+        global count
+        count += 1
+
+        # 前,背景色
+        color = index.data(Qt.ItemDataRole.ForegroundRole)
+        bgcColor = index.data(Qt.ItemDataRole.BackgroundRole)
+
+        # 复选框状态
+        checkState = index.data(Qt.ItemDataRole.CheckStateRole)
+
+        print(color, bgcColor, checkState)
 
         # 设置背景颜色（比如悬停或选中时）
         if option.state & QStyle.StateFlag.State_Selected:
@@ -44,15 +62,24 @@ class CustomDelegate(QStyledItemDelegate):
         elif option.state & QStyle.StateFlag.State_MouseOver:
             painter.fillRect(option.rect, QColor("#e0f7fa"))
         else:
-            painter.fillRect(option.rect, QColor("#ffffff"))
+            painter.fillRect(option.rect, QColor('#ffffff'))
+
+        # 获取图标
+        print(f"Left: {option.rect.left()}")
+        icon = index.data(Qt.ItemDataRole.DecorationRole)  # 获取图标
+        icon.paint(painter, option.rect)  # 绘制图标
 
         # 设置字体颜色和大小
-        text = index.data()
+        text = index.data(Qt.ItemDataRole.DisplayRole)
+        alignment = index.model().data(index, Qt.ItemDataRole.TextAlignmentRole)
+        print(f'alignment: {alignment}')
         painter.setPen(QColor("#333333"))
         painter.setFont(QFont("微软雅黑", 10))
-        painter.drawText(option.rect.adjusted(5, 0, -5, 0), Qt.AlignLeft | Qt.AlignVCenter, text)
+        painter.drawText(option.rect.adjusted(5, 0, -5, 0), alignment, text)
 
         painter.restore()
+
+        print(count)
 
 
 class TableWidgetItem(QTableWidgetItem): ...
@@ -61,6 +88,8 @@ class TableWidgetItem(QTableWidgetItem): ...
 class TableWidget(QTableWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setMouseTracking(True)
+        self.__items = []
 
         # 设置行数
         self.setRowCount(10)
@@ -95,14 +124,43 @@ class TableWidget(QTableWidget):
         # 清空表格项的内容
         self.clearContents()
 
-        self.setItem(0, 0, TableWidgetItem("Hello"))
-        self.setItem(0, 1, TableWidgetItem("Hello World"))
+        row = 1_0_0_0
+        colum = 2_4
+        self.setRowCount(row)
+        self.setColumnCount(colum)
 
-        self.item(0, 1).setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+        icon = QIcon(r"C:\Users\Administrator\OneDrive\Pictures\ff.jpg")
+
+        for i in range(row):
+            for j in range(colum):
+                item = TableWidgetItem(f"{i + 1}_{j + 1}")
+                self.__items.append(item)
+                item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+                item.setIcon(icon)
+                self.setItem(i, j, item)
+
 
         # 获取满足条件的表格项和列
         print(self.findItems("Hello World", Qt.MatchFlag.MatchExactly))
         print(self.findItems("Hello", Qt.MatchFlag.MatchExactly))
+
+        print(len(self.items()))
+
+        lenght = 0
+        for i in range(self.rowCount()):
+            for j in range(self.columnCount()):
+                self.item(i, j)
+                lenght += 1
+        print(lenght)
+
+        # self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
+    def items(self):
+        return self.__items
+
+    def setItemSize(self, width: int, height: int):
+        for item in self.items():
+            item.setSizeHint(QSize(width, height))
 
 
 class QTableWidget_QTableWidgetItem_Interface(WidgetInterface):
@@ -113,17 +171,27 @@ class QTableWidget_QTableWidgetItem_Interface(WidgetInterface):
         self.tableWidget = TableWidget(self)
 
         self.tableWidget.setItemDelegate(CustomDelegate(self))
+        # self.tableWidget.setItemSize(50, 35)
 
-        self.box.addWidget(self.tableWidget, 1)
+        self.box.addWidget(self.tableWidget)
 
         try:
-            from FluentWidgets import TableWidget as tw, SmoothScrollDelegate
+            from FluentWidgets import TableWidget as tw, SmoothScrollDelegate, TableView
             t = tw(self)
-            t.setRowCount(10)
-            t.setColumnCount(5)
-            self.box.addWidget(t)
+            row = 1_0_0_0
+            colum = 2_4
+            t.setRowCount(row)
+            t.setColumnCount(colum)
+
+            for i in range(row):
+                for j in range(colum):
+                    item = TableWidgetItem(f"{i + 1}_{j + 1}")
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
+                    t.setItem(i, j, item)
 
             SmoothScrollDelegate(self.tableWidget)
+            self.box.addWidget(t)
+            ...
         except ImportError:
             ...
 
@@ -133,4 +201,20 @@ if __name__ == '__main__':
     window = QTableWidget_QTableWidgetItem_Interface()
     window.resize(800, 520)
     window.show()
+    try:
+        from FluentWidgets import FluentTranslator, ListWidget, ListView
+
+        # app.installTranslator(FluentTranslator(QLocale(QLocale.Language.Chinese, QLocale.Country.China), window))
+        app.installTranslator(FluentTranslator(QLocale(), window))
+
+        from qframelesswindow import WindowEffect
+        #
+        # window.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        # window.setStyleSheet('background: transparent;')
+        #
+        # we = WindowEffect(window)
+        # we.setMicaEffect(window.winId(), isAlt=True)
+
+    except ImportError:
+        ...
     sys.exit(app.exec())

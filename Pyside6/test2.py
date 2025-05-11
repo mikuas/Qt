@@ -340,7 +340,6 @@ class SearchTitleBar(TitleBarBase):
         super().__init__(parent)
         self.window().installEventFilter(self)
         self.setFixedHeight(45)
-        self.window().installEventFilter(self)
 
         self.maxBtn = MaximizeButton(self)
         self.minBtn = MinimizeButton(self)

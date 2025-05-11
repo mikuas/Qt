@@ -20,6 +20,7 @@ class RoundListWidgetItemDelegate(QStyledItemDelegate):
 
     def createEditor(self, parent, option, index):
         editor = LineEdit(parent)
+        editor.setClearButtonEnabled(True)
         editor.setFixedHeight(option.rect.height())
         return editor
 
