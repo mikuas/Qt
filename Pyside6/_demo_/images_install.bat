@@ -10,4 +10,5 @@ nuitka ^
   --lto=yes ^
   --jobs=8 ^
   --output-filename=DisplayTime ^
-  QTime.py
+  --include-data-dir=images=images ^
+  image_demo.py
